@@ -29,6 +29,7 @@ import argparse
 import sys
 
 import websocket
+import psutil
 
 # Set up camera constants
 IM_WIDTH = 1280
@@ -122,7 +123,7 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 
 # To send data over camera : open teh QA websocket
 ws = websocket.WebSocket()
-ws.connect("wss://qimg-server-tftitaqzlf.now.sh")
+ws.connect("wss://qimg-server-oumenafoay.now.sh")
 
 ### Picamera ###
 if camera_type == 'picamera':
@@ -168,7 +169,7 @@ if camera_type == 'picamera':
 
         for i in np.nditer(a):
             if i.item() in category_index.keys():
-               ws.send(category_index[i.item()]['name']) 
+               ws.send(category_index[i.item()]['name'] + " " + str(psutil.virtual_memory().percent)) 
 
         cv2.putText(frame,"FPS: {0:.2f}".format(frame_rate_calc),(30,50),font,1,(255,255,0),2,cv2.LINE_AA)
 
