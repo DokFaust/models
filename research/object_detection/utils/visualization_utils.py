@@ -35,6 +35,9 @@ import six
 import tensorflow as tf
 
 from object_detection.core import standard_fields as fields
+import websocket
+import psutil
+import json
 
 
 _TITLE_LEFT_MARGIN = 10
@@ -556,7 +559,8 @@ def visualize_boxes_and_labels_on_image_array(
     line_thickness=4,
     groundtruth_box_visualization_color='black',
     skip_scores=False,
-    skip_labels=False):
+    skip_labels=False,
+    web_socket=None):
   """Overlay labeled boxes on an image with formatted scores and label names.
 
   This function groups boxes that correspond to the same location
@@ -623,6 +627,11 @@ def visualize_boxes_and_labels_on_image_array(
           if not agnostic_mode:
             if classes[i] in category_index.keys():
               class_name = category_index[classes[i]]['name']
+              vmem = str(psutil.virtual_memory().percent)
+              ctx = str(psutil.cpu_stats().ctx_switches)
+              interr = str(psutil.cpu_stats().interrupts)
+              s_interr = str(psutil.cpu_stats().soft_interrupts)
+              web_socket.send(json.dumps({'label': str(class_name), 'virtual_memory': vmem, 'context_switches': ctx, 'interrupts': interr, 'software_interrupts': s_interr})) 
             else:
               class_name = 'N/A'
             display_str = str(class_name)
