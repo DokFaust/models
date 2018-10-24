@@ -30,6 +30,7 @@ import sys
 
 import websocket
 import psutil
+import json
 
 # Set up camera constants
 IM_WIDTH = 1280
@@ -162,14 +163,20 @@ if camera_type == 'picamera':
             line_thickness=8,
             min_score_thresh=0.60)
         a = np.squeeze(classes).astype(np.int32)
+        score_array = np.squeeze(scores)
+
+        vmem = str(psutil.virtual_memory().percent)
+        ctx = str(psutil.cpu_stats().ctx_switches)
+        interr = str(psutil.cpu_stats().interrupts)
+        s_interr = str(psutil.cpu_stats().soft_interrupts)
         # print(type(a))
         # for i in np.nditer(a):
         #     if i.item() in category_index.keys():
         #        print(category_index[i.item()]['name']) 
 
         for i in np.nditer(a):
-            if i.item() in category_index.keys():
-               ws.send(category_index[i.item()]['name'] + " " + str(psutil.virtual_memory().percent)) 
+            if i.item() in category_index.keys() and score_array[i] > 0.6 :
+                ws.send(json.dumps({'label': category_index[i.item()]['name'], 'virtual_memory': vmem, 'context_switches': ctx, 'interrupts': interr, 'software_interrupts': s_interr})) 
 
         cv2.putText(frame,"FPS: {0:.2f}".format(frame_rate_calc),(30,50),font,1,(255,255,0),2,cv2.LINE_AA)
 
