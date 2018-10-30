@@ -611,6 +611,7 @@ def visualize_boxes_and_labels_on_image_array(
   if not max_boxes_to_draw:
     max_boxes_to_draw = boxes.shape[0]
   for i in range(min(max_boxes_to_draw, boxes.shape[0])):
+    num_cat = 0
     if scores is None or scores[i] > min_score_thresh:
       box = tuple(boxes[i].tolist())
       if instance_masks is not None:
@@ -627,11 +628,6 @@ def visualize_boxes_and_labels_on_image_array(
           if not agnostic_mode:
             if classes[i] in category_index.keys():
               class_name = category_index[classes[i]]['name']
-              vmem = str(psutil.virtual_memory().percent)
-              ctx = str(psutil.cpu_stats().ctx_switches)
-              interr = str(psutil.cpu_stats().interrupts)
-              s_interr = str(psutil.cpu_stats().soft_interrupts)
-              web_socket.send(json.dumps({'label': str(class_name), 'virtual_memory': vmem, 'context_switches': ctx, 'interrupts': interr, 'software_interrupts': s_interr})) 
             else:
               class_name = 'N/A'
             display_str = str(class_name)
@@ -646,6 +642,7 @@ def visualize_boxes_and_labels_on_image_array(
         else:
           box_to_color_map[box] = STANDARD_COLORS[
               classes[i] % len(STANDARD_COLORS)]
+      num_cat += 1
 
   # Draw all boxes onto image.
   for box, color in box_to_color_map.items():
@@ -681,6 +678,14 @@ def visualize_boxes_and_labels_on_image_array(
           radius=line_thickness / 2,
           use_normalized_coordinates=use_normalized_coordinates)
 
+  cpu_per = str(psutil.cpu_percent())
+  vmem = str(psutil.virtual_memory().percent)
+  ctx = str(psutil.cpu_stats().ctx_switches)
+  interr = str(psutil.cpu_stats().interrupts)
+  s_interr = str(psutil.cpu_stats().soft_interrupts)
+  if bool(box_to_display_str_map):
+      web_socket.send(json.dumps({'classes': str(list(box_to_display_str_map.values())), 'cpu': cpu_per, 'memory': vmem, 'context_switches': ctx, 'interrupts': interr, 'software_interrupts': s_interr})) 
+  
   return image
 
 
